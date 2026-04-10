@@ -1,11 +1,26 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { formatTimestamp, groupPathByPlayer } from '../utils/analytics';
 
-const COLORS = {
+const EVENT_COLORS = {
   kill: '#ef4444',
   death: '#3b82f6',
   loot: '#facc15',
   storm_death: '#a855f7',
+};
+
+const ACTOR_STYLE = {
+  human: {
+    markerColor: '#22c55e',
+    markerShape: 'circle',
+    pathDash: undefined,
+    label: 'Human',
+  },
+  bot: {
+    markerColor: '#f97316',
+    markerShape: 'square',
+    pathDash: '8 5',
+    label: 'Bot',
+  },
 };
 
 const clamp01 = (value) => Math.max(0, Math.min(1, value));
@@ -60,6 +75,8 @@ const computeStageSize = (containerWidth, containerHeight, imageAspectRatio) => 
     height: containerWidth / imageAspectRatio,
   };
 };
+
+const getActorStyle = (event) => ACTOR_STYLE[event.actor_type] || ACTOR_STYLE.human;
 
 const MapView = ({
   events,
@@ -125,6 +142,7 @@ const MapView = ({
 
     const sample = mappedVisibleEvents.slice(0, 5).map((event) => ({
       player_id: event.player_id,
+      actor_type: event.actor_type,
       event_type: event.event_type,
       raw: { x: event.x, y: event.y },
       mapped: {
@@ -159,6 +177,20 @@ const MapView = ({
             event.currentTarget.style.opacity = '0.1';
           }}
         />
+
+        <div className="absolute right-3 top-3 z-20 rounded-md border border-slate-600 bg-slate-900/85 px-3 py-2 text-xs">
+          <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-300">Legend</p>
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="inline-block h-3 w-3 rounded-full border border-slate-100 bg-green-500" />
+              <span>Human</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="inline-block h-3 w-3 border border-slate-100 bg-orange-500" />
+              <span>Bot</span>
+            </div>
+          </div>
+        </div>
 
         {focusRegion && (
           <div className="absolute left-3 top-3 z-20 flex items-center gap-2">
@@ -211,18 +243,23 @@ const MapView = ({
             ))}
 
           {layers.playerPaths &&
-            Array.from(playerPaths.entries()).map(([playerId, points]) => (
-              <polyline
-                key={playerId}
-                points={points
-                  .map((point) => mapPointToPixel(point, bounds, stageSize.width, stageSize.height, invertY))
-                  .map((point) => `${point.x},${point.y}`)
-                  .join(' ')}
-                fill="none"
-                stroke="rgba(255,255,255,0.28)"
-                strokeWidth="1.6"
-              />
-            ))}
+            Array.from(playerPaths.entries()).map(([playerId, points]) => {
+              const actorStyle = getActorStyle(points[0]);
+              return (
+                <polyline
+                  key={playerId}
+                  points={points
+                    .map((point) => mapPointToPixel(point, bounds, stageSize.width, stageSize.height, invertY))
+                    .map((point) => `${point.x},${point.y}`)
+                    .join(' ')}
+                  fill="none"
+                  stroke={actorStyle.markerColor}
+                  strokeOpacity="0.78"
+                  strokeWidth="2.25"
+                  strokeDasharray={actorStyle.pathDash}
+                />
+              );
+            })}
         </svg>
 
         <div className="absolute inset-0">
@@ -233,19 +270,23 @@ const MapView = ({
               (event.event_type !== 'loot' || layers.lootEvents) &&
               (event.event_type !== 'storm_death' || layers.stormDeaths);
 
-            if (!visible || !COLORS[event.event_type]) {
+            if (!visible || !EVENT_COLORS[event.event_type]) {
               return null;
             }
+
+            const actorStyle = getActorStyle(event);
+            const baseShape = actorStyle.markerShape === 'circle' ? 'rounded-full' : '';
 
             return (
               <button
                 key={`${event.player_id}-${event.timestamp}-${index}`}
                 type="button"
-                className="absolute h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border border-slate-950"
+                className={`absolute h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 border-2 border-slate-100 ${baseShape}`}
                 style={{
                   left: `${event.mapped.x}px`,
                   top: `${event.mapped.y}px`,
-                  background: COLORS[event.event_type],
+                  background: actorStyle.markerColor,
+                  boxShadow: `0 0 0 1px rgba(2,6,23,0.9), 0 0 0 2px ${EVENT_COLORS[event.event_type]}`,
                 }}
                 onClick={() => onFocusSelect(event)}
                 onMouseEnter={() =>
@@ -255,6 +296,7 @@ const MapView = ({
                     playerId: event.player_id,
                     eventType: event.event_type,
                     timestamp: event.timestamp,
+                    actorType: event.actor_type,
                   })
                 }
                 onMouseLeave={() => setTooltip(null)}
@@ -270,6 +312,9 @@ const MapView = ({
           >
             <p>
               <span className="text-slate-400">Player:</span> {tooltip.playerId}
+            </p>
+            <p>
+              <span className="text-slate-400">Actor:</span> {tooltip.actorType || 'human'}
             </p>
             <p>
               <span className="text-slate-400">Event:</span> {tooltip.eventType}
