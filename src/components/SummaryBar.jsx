@@ -1,20 +1,20 @@
 const SummaryBar = ({ stats }) => (
-  <div className="mb-4 grid grid-cols-2 gap-3 rounded-lg border border-slate-700 bg-slate-900/85 p-4 shadow-sm shadow-black/30 xl:grid-cols-4">
+  <div className="grid grid-cols-2 gap-4 rounded-lg border border-slate-200 bg-slate-50 p-4 shadow-sm xl:grid-cols-4">
     <div>
-      <p className="text-[11px] uppercase tracking-wide text-slate-400">Total Players</p>
-      <p className="text-lg font-semibold text-slate-100">{stats.totalPlayers}</p>
+      <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500">Total Players</p>
+      <p className="text-lg font-semibold text-slate-900">{stats.totalPlayers}</p>
     </div>
     <div>
-      <p className="text-[11px] uppercase tracking-wide text-slate-400">Total Kills</p>
-      <p className="text-lg font-semibold text-slate-100">{stats.totalKills}</p>
+      <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500">Total Kills</p>
+      <p className="text-lg font-semibold text-slate-900">{stats.totalKills}</p>
     </div>
     <div>
-      <p className="text-[11px] uppercase tracking-wide text-slate-400">Top Kill Zone</p>
-      <p className="text-sm font-semibold text-rose-300">{stats.topKillZone}</p>
+      <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500">Top Kill Zone</p>
+      <p className="text-sm font-semibold text-slate-800">{stats.topKillZone}</p>
     </div>
     <div>
-      <p className="text-[11px] uppercase tracking-wide text-slate-400">Least Visited Zone</p>
-      <p className="text-sm font-semibold text-amber-300">{stats.leastVisitedZone}</p>
+      <p className="text-[11px] font-bold uppercase tracking-wide text-slate-500">Least Visited Zone</p>
+      <p className="text-sm font-semibold text-slate-800">{stats.leastVisitedZone}</p>
     </div>
   </div>
 );

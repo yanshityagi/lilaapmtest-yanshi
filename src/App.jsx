@@ -175,7 +175,7 @@ function App() {
   }, [visibleEvents]);
 
   return (
-    <div className="flex h-screen flex-col bg-slate-950 text-slate-100">
+    <div className="flex h-screen flex-col bg-slate-50 text-slate-900">
       <TopBar
         maps={maps}
         matches={matches}
@@ -188,12 +188,13 @@ function App() {
         }}
       />
 
-      <div className="flex min-h-0 flex-1">
+      <div className="flex min-h-0 flex-1 gap-4 p-4">
         <Sidebar layers={layers} onToggleLayer={(key) => setLayers((current) => ({ ...current, [key]: !current[key] }))} />
 
-        <main className="min-h-0 flex-1 p-4">
+        <main className="min-h-0 flex-1 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <SummaryBar stats={summaryStats} />
-          <MapView
+          <div className="mt-4 min-h-0 h-[calc(100%-88px)]">
+            <MapView
             events={filteredEvents}
             visibleEvents={visibleEvents}
             layers={layers}
@@ -202,13 +203,15 @@ function App() {
             focusRegion={focusRegion}
             onFocusSelect={(event) => setFocusRegion({ x: event.x, y: event.y, radius: DEFAULT_FOCUS_RADIUS })}
             onFocusExit={() => setFocusRegion(null)}
-          />
+            />
+          </div>
         </main>
 
         <InsightsPanel insights={insights} />
       </div>
 
-      <Timeline
+      <div className="border-t border-slate-200 bg-white px-4 pb-4 pt-4 shadow-[0_-1px_0_0_rgba(226,232,240,1)]">
+        <Timeline
         minTimestamp={minTimestamp}
         maxTimestamp={maxTimestamp}
         value={timelinePercent}
@@ -218,7 +221,8 @@ function App() {
         }}
         isPlaying={isPlaying}
         onTogglePlay={() => setIsPlaying((current) => !current)}
-      />
+        />
+      </div>
     </div>
   );
 }
