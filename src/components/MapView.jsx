@@ -188,7 +188,7 @@ const MapView = ({
   }, [debug, debugSamplePoints, bounds, stageSize, invertY, focusRegion]);
 
   return (
-    <div ref={containerRef} className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-lg border border-slate-700 bg-slate-950">
+    <div ref={containerRef} className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-lg border border-slate-700 bg-slate-950 shadow-md shadow-black/40">
       <div className="relative" style={{ width: stageSize.width, height: stageSize.height }}>
         <img
           src={mapImage}
@@ -205,9 +205,9 @@ const MapView = ({
           }}
         />
 
-        <div className="absolute right-3 top-3 z-20 rounded-md border border-slate-600 bg-slate-900/85 px-3 py-2 text-xs">
+        <div className="absolute right-3 top-3 z-20 rounded-md border border-slate-600 bg-slate-900/85 px-3 py-3 text-xs shadow-sm shadow-black/40">
           <p className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-300">Legend</p>
-          <div className="space-y-1">
+          <div className="mb-2 space-y-1">
             <div className="flex items-center gap-2">
               <span className="inline-block h-3 w-3 rounded-full border border-slate-100 bg-green-500" />
               <span>Human</span>
@@ -216,6 +216,12 @@ const MapView = ({
               <span className="inline-block h-3 w-3 border border-slate-100 bg-orange-500" />
               <span>Bot</span>
             </div>
+          </div>
+          <div className="space-y-1 border-t border-slate-700 pt-2 text-[11px] text-slate-300">
+            <div className="flex items-center gap-2"><span className="inline-block h-2.5 w-2.5 rounded-full bg-rose-500" />Kill</div>
+            <div className="flex items-center gap-2"><span className="inline-block h-2.5 w-2.5 rounded-full bg-blue-500" />Death</div>
+            <div className="flex items-center gap-2"><span className="inline-block h-2.5 w-2.5 rounded-full bg-yellow-400" />Loot</div>
+            <div className="flex items-center gap-2"><span className="inline-block h-2.5 w-2.5 rounded-full bg-purple-500" />Storm</div>
           </div>
         </div>
 

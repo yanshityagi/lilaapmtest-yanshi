@@ -4,10 +4,16 @@ import Sidebar from './components/Sidebar';
 import MapView from './components/MapView';
 import InsightsPanel from './components/InsightsPanel';
 import Timeline from './components/Timeline';
+import SummaryBar from './components/SummaryBar';
 import { getGameData } from './data/gameDataAdapter';
 import { generateInsights } from './utils/analytics';
 
 const DEFAULT_FOCUS_RADIUS = 0.14;
+const ZONES = [
+  ['North-West', 'North', 'North-East'],
+  ['West', 'Center', 'East'],
+  ['South-West', 'South', 'South-East'],
+];
 
 const initialLayers = {
   playerPaths: true,
@@ -43,6 +49,12 @@ const buildBounds = (events) => {
 
 const normalize = (value, min, max) => (value - min) / (max - min);
 
+const zoneName = (x, y) => {
+  const col = Math.min(2, Math.floor(Math.max(0, Math.min(0.999, x)) * 3));
+  const row = Math.min(2, Math.floor(Math.max(0, Math.min(0.999, y)) * 3));
+  return ZONES[row][col];
+};
+
 const filterByFocusRegion = (events, focusRegion) => {
   if (!focusRegion) {
     return events;
@@ -63,6 +75,7 @@ function App() {
   const [mapConfig, setMapConfig] = useState({});
   const [layers, setLayers] = useState(initialLayers);
   const [timelinePercent, setTimelinePercent] = useState(100);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [debugMode, setDebugMode] = useState(false);
   const [focusRegion, setFocusRegion] = useState(null);
   const [filters, setFilters] = useState({
@@ -77,6 +90,26 @@ function App() {
       setMapConfig(config);
     });
   }, []);
+
+  useEffect(() => {
+    if (!isPlaying) {
+      return;
+    }
+
+    const intervalId = window.setInterval(() => {
+      setTimelinePercent((current) => {
+        const next = current + 1;
+        if (next >= 100) {
+          window.clearInterval(intervalId);
+          setIsPlaying(false);
+          return 100;
+        }
+        return next;
+      });
+    }, 90);
+
+    return () => window.clearInterval(intervalId);
+  }, [isPlaying]);
 
   const maps = useMemo(() => Object.keys(mapConfig), [mapConfig]);
   const matches = useMemo(() => [...new Set(events.map((event) => event.match_id))], [events]);
@@ -105,13 +138,41 @@ function App() {
     };
   }, [events, filters, timelinePercent]);
 
-
   const focusEvents = useMemo(() => filterByFocusRegion(filteredEvents, focusRegion), [filteredEvents, focusRegion]);
   const visibleEvents = focusRegion ? focusEvents : filteredEvents;
 
   const selectedMap = filters.map === 'all' ? maps[0] : filters.map;
   const mapImage = mapConfig[selectedMap] || '/maps/ambrose_valley.png';
-  const insights = useMemo(() => generateInsights(visibleEvents, layers), [visibleEvents, layers]);
+  const insights = useMemo(() => generateInsights(visibleEvents), [visibleEvents]);
+
+  const summaryStats = useMemo(() => {
+    const totalPlayers = new Set(visibleEvents.map((event) => event.player_id)).size;
+    const totalKills = visibleEvents.filter((event) => event.event_type === 'kill').length;
+
+    const killZoneCounts = visibleEvents
+      .filter((event) => event.event_type === 'kill')
+      .reduce((acc, event) => {
+        const zone = zoneName(event.x, event.y);
+        acc[zone] = (acc[zone] || 0) + 1;
+        return acc;
+      }, {});
+
+    const visitZoneCounts = visibleEvents.reduce((acc, event) => {
+      const zone = zoneName(event.x, event.y);
+      acc[zone] = (acc[zone] || 0) + 1;
+      return acc;
+    }, {});
+
+    const topKillZone = Object.entries(killZoneCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A';
+    const leastVisitedZone = Object.entries(visitZoneCounts).sort((a, b) => a[1] - b[1])[0]?.[0] || 'N/A';
+
+    return {
+      totalPlayers,
+      totalKills,
+      topKillZone,
+      leastVisitedZone,
+    };
+  }, [visibleEvents]);
 
   return (
     <div className="flex h-screen flex-col bg-slate-950 text-slate-100">
@@ -131,6 +192,7 @@ function App() {
         <Sidebar layers={layers} onToggleLayer={(key) => setLayers((current) => ({ ...current, [key]: !current[key] }))} />
 
         <main className="min-h-0 flex-1 p-4">
+          <SummaryBar stats={summaryStats} />
           <MapView
             events={filteredEvents}
             visibleEvents={visibleEvents}
@@ -146,7 +208,17 @@ function App() {
         <InsightsPanel insights={insights} />
       </div>
 
-      <Timeline minTimestamp={minTimestamp} maxTimestamp={maxTimestamp} value={timelinePercent} onChange={setTimelinePercent} />
+      <Timeline
+        minTimestamp={minTimestamp}
+        maxTimestamp={maxTimestamp}
+        value={timelinePercent}
+        onChange={(value) => {
+          setTimelinePercent(value);
+          setIsPlaying(false);
+        }}
+        isPlaying={isPlaying}
+        onTogglePlay={() => setIsPlaying((current) => !current)}
+      />
     </div>
   );
 }
