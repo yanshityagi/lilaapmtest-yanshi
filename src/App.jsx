@@ -1,3 +1,4 @@
+// src/App.jsx
 import { useEffect, useMemo, useState } from 'react';
 import TopBar from './components/TopBar';
 import Sidebar from './components/Sidebar';
@@ -74,9 +75,9 @@ function App() {
   const [events, setEvents] = useState([]);
   const [mapConfig, setMapConfig] = useState({});
   const [layers, setLayers] = useState(initialLayers);
+  const [heatmapMode, setHeatmapMode] = useState('kill'); // 'none' | 'kill' | 'death' | 'movement'
   const [timelinePercent, setTimelinePercent] = useState(100);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [debugMode, setDebugMode] = useState(false);
   const [focusRegion, setFocusRegion] = useState(null);
   const [filters, setFilters] = useState({
     map: 'all',
@@ -121,6 +122,10 @@ function App() {
       if (filters.playerType !== 'all' && event.player_type !== filters.playerType) return false;
       return true;
     });
+
+    if (!baseFiltered.length) {
+      return { filteredEvents: [], minTimestamp: undefined, maxTimestamp: undefined };
+    }
 
     const minTs = Math.min(...baseFiltered.map((event) => event.timestamp));
     const maxTs = Math.max(...baseFiltered.map((event) => event.timestamp));
@@ -180,47 +185,50 @@ function App() {
         maps={maps}
         matches={matches}
         filters={filters}
-        debugMode={debugMode}
-        onToggleDebug={() => setDebugMode((current) => !current)}
         onFilterChange={(key, value) => {
           setFilters((current) => ({ ...current, [key]: value }));
           setFocusRegion(null);
         }}
       />
 
-      <div className="flex min-h-0 flex-1 gap-4 p-4">
-        <Sidebar layers={layers} onToggleLayer={(key) => setLayers((current) => ({ ...current, [key]: !current[key] }))} />
+      <div className="flex min-h-0 flex-1 gap-3 p-3">
+      <Sidebar
+          layers={layers}
+          onToggleLayer={(key) => setLayers((current) => ({ ...current, [key]: !current[key] }))}
+          heatmapMode={heatmapMode}
+          onSetHeatmapMode={(mode) => setHeatmapMode(mode)}
+      />
 
-        <main className="min-h-0 flex-1 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+        <main className="min-h-0 flex-1 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
           <SummaryBar stats={summaryStats} />
-          <div className="mt-4 min-h-0 h-[calc(100%-88px)]">
-            <MapView
+          <div className="mt-3 min-h-0 h-[calc(100%-76px)]">
+          <MapView
             events={filteredEvents}
             visibleEvents={visibleEvents}
             layers={layers}
+            heatmapMode={heatmapMode}
             mapImage={mapImage}
-            debug={debugMode}
             focusRegion={focusRegion}
             onFocusSelect={(event) => setFocusRegion({ x: event.x, y: event.y, radius: DEFAULT_FOCUS_RADIUS })}
             onFocusExit={() => setFocusRegion(null)}
-            />
+          />
           </div>
         </main>
 
         <InsightsPanel insights={insights} />
       </div>
 
-      <div className="border-t border-slate-200 bg-white px-4 pb-4 pt-4 shadow-[0_-1px_0_0_rgba(226,232,240,1)]">
+      <div className="border-t border-slate-200 bg-white px-3 pb-3 pt-3 shadow-[0_-1px_0_0_rgba(226,232,240,1)]">
         <Timeline
-        minTimestamp={minTimestamp}
-        maxTimestamp={maxTimestamp}
-        value={timelinePercent}
-        onChange={(value) => {
-          setTimelinePercent(value);
-          setIsPlaying(false);
-        }}
-        isPlaying={isPlaying}
-        onTogglePlay={() => setIsPlaying((current) => !current)}
+          minTimestamp={minTimestamp}
+          maxTimestamp={maxTimestamp}
+          value={timelinePercent}
+          onChange={(value) => {
+            setTimelinePercent(value);
+            setIsPlaying(false);
+          }}
+          isPlaying={isPlaying}
+          onTogglePlay={() => setIsPlaying((current) => !current)}
         />
       </div>
     </div>
