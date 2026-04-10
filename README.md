@@ -1,4 +1,3 @@
-````md
 # Player Journey — README
 
 A lightweight React/Vite app for visualizing player telemetry on game minimaps (paths, events, heatmaps, timeline playback). Focused on client-side rendering of preprocessed telemetry JSON and responsive minimap overlays.
