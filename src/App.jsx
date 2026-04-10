@@ -7,8 +7,8 @@ import Timeline from './components/Timeline';
 import { getGameData } from './data/gameDataAdapter';
 import { generateInsights } from './utils/analytics';
 
-
 const DEBUG_MODE = new URLSearchParams(window.location.search).get('debug') === '1';
+const DEFAULT_FOCUS_RADIUS = 0.14;
 
 const initialLayers = {
   playerPaths: true,
@@ -19,11 +19,50 @@ const initialLayers = {
   heatmap: false,
 };
 
+const buildBounds = (events) => {
+  if (!events.length) {
+    return { minX: 0, maxX: 1, minY: 0, maxY: 1 };
+  }
+
+  const xs = events.map((event) => event.x);
+  const ys = events.map((event) => event.y);
+
+  const minX = Math.min(...xs);
+  const maxX = Math.max(...xs);
+  const minY = Math.min(...ys);
+  const maxY = Math.max(...ys);
+
+  return {
+    minX,
+    maxX: maxX === minX ? minX + 1 : maxX,
+    minY,
+    maxY: maxY === minY ? minY + 1 : maxY,
+  };
+};
+
+const normalize = (value, min, max) => (value - min) / (max - min);
+
+const filterByFocusRegion = (events, focusRegion) => {
+  if (!focusRegion) {
+    return events;
+  }
+
+  const bounds = buildBounds(events);
+  return events.filter((event) => {
+    const nx = normalize(event.x, bounds.minX, bounds.maxX);
+    const ny = normalize(event.y, bounds.minY, bounds.maxY);
+    const fx = normalize(focusRegion.x, bounds.minX, bounds.maxX);
+    const fy = normalize(focusRegion.y, bounds.minY, bounds.maxY);
+    return Math.hypot(nx - fx, ny - fy) <= focusRegion.radius;
+  });
+};
+
 function App() {
   const [events, setEvents] = useState([]);
   const [mapConfig, setMapConfig] = useState({});
   const [layers, setLayers] = useState(initialLayers);
   const [timelinePercent, setTimelinePercent] = useState(100);
+  const [focusRegion, setFocusRegion] = useState(null);
   const [filters, setFilters] = useState({
     map: 'all',
     match: 'all',
@@ -64,9 +103,13 @@ function App() {
     };
   }, [events, filters, timelinePercent]);
 
+
+  const focusEvents = useMemo(() => filterByFocusRegion(filteredEvents, focusRegion), [filteredEvents, focusRegion]);
+  const visibleEvents = focusRegion ? focusEvents : filteredEvents;
+
   const selectedMap = filters.map === 'all' ? maps[0] : filters.map;
   const mapImage = mapConfig[selectedMap] || '/maps/ambrose_valley.png';
-  const insights = useMemo(() => generateInsights(filteredEvents, layers), [filteredEvents, layers]);
+  const insights = useMemo(() => generateInsights(visibleEvents, layers), [visibleEvents, layers]);
 
   return (
     <div className="flex h-screen flex-col bg-slate-950 text-slate-100">
@@ -74,14 +117,26 @@ function App() {
         maps={maps}
         matches={matches}
         filters={filters}
-        onFilterChange={(key, value) => setFilters((current) => ({ ...current, [key]: value }))}
+        onFilterChange={(key, value) => {
+          setFilters((current) => ({ ...current, [key]: value }));
+          setFocusRegion(null);
+        }}
       />
 
       <div className="flex min-h-0 flex-1">
         <Sidebar layers={layers} onToggleLayer={(key) => setLayers((current) => ({ ...current, [key]: !current[key] }))} />
 
         <main className="min-h-0 flex-1 p-4">
-          <MapView events={filteredEvents} layers={layers} mapImage={mapImage} debug={DEBUG_MODE} />
+          <MapView
+            events={filteredEvents}
+            visibleEvents={visibleEvents}
+            layers={layers}
+            mapImage={mapImage}
+            debug={DEBUG_MODE}
+            focusRegion={focusRegion}
+            onFocusSelect={(event) => setFocusRegion({ x: event.x, y: event.y, radius: DEFAULT_FOCUS_RADIUS })}
+            onFocusExit={() => setFocusRegion(null)}
+          />
         </main>
 
         <InsightsPanel insights={insights} />

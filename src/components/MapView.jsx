@@ -32,10 +32,7 @@ const buildBounds = (events) => {
 };
 
 const mapPointToPixel = ({ x, y }, bounds, width, height, invertY = false) => {
-  // x_map = (x - min_x) / (max_x - min_x) * width
   const normalizedX = clamp01((x - bounds.minX) / (bounds.maxX - bounds.minX));
-
-  // y_map = (y - min_y) / (max_y - min_y) * height
   const normalizedY = clamp01((y - bounds.minY) / (bounds.maxY - bounds.minY));
   const orientedY = invertY ? 1 - normalizedY : normalizedY;
 
@@ -64,13 +61,23 @@ const computeStageSize = (containerWidth, containerHeight, imageAspectRatio) => 
   };
 };
 
-const MapView = ({ events, layers, mapImage, debug = false, invertY = false }) => {
+const MapView = ({
+  events,
+  visibleEvents,
+  layers,
+  mapImage,
+  debug = false,
+  invertY = false,
+  focusRegion,
+  onFocusSelect,
+  onFocusExit,
+}) => {
   const [tooltip, setTooltip] = useState(null);
   const [imageRatio, setImageRatio] = useState(1);
   const [stageSize, setStageSize] = useState({ width: 0, height: 0 });
   const containerRef = useRef(null);
 
-  const playerPaths = useMemo(() => groupPathByPlayer(events), [events]);
+  const playerPaths = useMemo(() => groupPathByPlayer(visibleEvents), [visibleEvents]);
   const bounds = useMemo(() => buildBounds(events), [events]);
 
   useEffect(() => {
@@ -90,21 +97,33 @@ const MapView = ({ events, layers, mapImage, debug = false, invertY = false }) =
     return () => observer.disconnect();
   }, [imageRatio]);
 
-  const mappedEvents = useMemo(
+  const mappedVisibleEvents = useMemo(
     () =>
-      events.map((event) => ({
+      visibleEvents.map((event) => ({
         ...event,
         mapped: mapPointToPixel(event, bounds, stageSize.width, stageSize.height, invertY),
       })),
-    [events, bounds, stageSize, invertY],
+    [visibleEvents, bounds, stageSize, invertY],
   );
 
+  const focusPixel = useMemo(() => {
+    if (!focusRegion) {
+      return null;
+    }
+
+    const center = mapPointToPixel(focusRegion, bounds, stageSize.width, stageSize.height, invertY);
+    return {
+      ...center,
+      radius: focusRegion.radius * Math.min(stageSize.width, stageSize.height),
+    };
+  }, [focusRegion, bounds, stageSize, invertY]);
+
   useEffect(() => {
-    if (!debug || !mappedEvents.length) {
+    if (!debug || !mappedVisibleEvents.length) {
       return;
     }
 
-    const sample = mappedEvents.slice(0, 5).map((event) => ({
+    const sample = mappedVisibleEvents.slice(0, 5).map((event) => ({
       player_id: event.player_id,
       event_type: event.event_type,
       raw: { x: event.x, y: event.y },
@@ -118,9 +137,10 @@ const MapView = ({ events, layers, mapImage, debug = false, invertY = false }) =
       bounds,
       stageSize,
       invertY,
+      focusMode: Boolean(focusRegion),
       sample,
     });
-  }, [debug, mappedEvents, bounds, stageSize, invertY]);
+  }, [debug, mappedVisibleEvents, bounds, stageSize, invertY, focusRegion]);
 
   return (
     <div ref={containerRef} className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-lg border border-slate-700 bg-slate-950">
@@ -128,7 +148,7 @@ const MapView = ({ events, layers, mapImage, debug = false, invertY = false }) =
         <img
           src={mapImage}
           alt="Selected game map"
-          className="h-full w-full"
+          className={`h-full w-full transition-opacity ${focusRegion ? 'opacity-35' : 'opacity-100'}`}
           onLoad={(event) => {
             const { naturalWidth, naturalHeight } = event.currentTarget;
             if (naturalWidth && naturalHeight) {
@@ -139,6 +159,19 @@ const MapView = ({ events, layers, mapImage, debug = false, invertY = false }) =
             event.currentTarget.style.opacity = '0.1';
           }}
         />
+
+        {focusRegion && (
+          <div className="absolute left-3 top-3 z-20 flex items-center gap-2">
+            <span className="rounded bg-indigo-500/80 px-2 py-1 text-[11px] font-medium">Focus Mode</span>
+            <button
+              type="button"
+              onClick={onFocusExit}
+              className="rounded border border-slate-500 bg-slate-900/85 px-2 py-1 text-[11px] hover:bg-slate-800"
+            >
+              Exit Focus
+            </button>
+          </div>
+        )}
 
         <svg viewBox={`0 0 ${stageSize.width || 1} ${stageSize.height || 1}`} className="pointer-events-none absolute inset-0 h-full w-full">
           {layers.heatmap && (
@@ -165,8 +198,15 @@ const MapView = ({ events, layers, mapImage, debug = false, invertY = false }) =
             </g>
           )}
 
+          {focusPixel && (
+            <g>
+              <rect x="0" y="0" width={stageSize.width} height={stageSize.height} fill="rgba(2,6,23,0.45)" />
+              <circle cx={focusPixel.x} cy={focusPixel.y} r={focusPixel.radius} fill="rgba(56,189,248,0.18)" stroke="rgba(56,189,248,0.95)" strokeWidth="2" />
+            </g>
+          )}
+
           {layers.heatmap &&
-            mappedEvents.map((event, index) => (
+            mappedVisibleEvents.map((event, index) => (
               <circle key={`heat-${index}`} cx={event.mapped.x} cy={event.mapped.y} r="22" fill="url(#heat)" />
             ))}
 
@@ -186,7 +226,7 @@ const MapView = ({ events, layers, mapImage, debug = false, invertY = false }) =
         </svg>
 
         <div className="absolute inset-0">
-          {mappedEvents.map((event, index) => {
+          {mappedVisibleEvents.map((event, index) => {
             const visible =
               (event.event_type !== 'kill' || layers.killEvents) &&
               (event.event_type !== 'death' || layers.deathEvents) &&
@@ -207,6 +247,7 @@ const MapView = ({ events, layers, mapImage, debug = false, invertY = false }) =
                   top: `${event.mapped.y}px`,
                   background: COLORS[event.event_type],
                 }}
+                onClick={() => onFocusSelect(event)}
                 onMouseEnter={() =>
                   setTooltip({
                     x: event.mapped.x,
