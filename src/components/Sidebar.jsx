@@ -4,7 +4,9 @@ const layerLabelMap = {
   deathEvents: 'Death Events',
   lootEvents: 'Loot Events',
   stormDeaths: 'Storm Deaths',
-  heatmap: 'Heatmap',
+  killHeatmap: 'Kill Heatmap',
+  deathHeatmap: 'Death Heatmap',
+  movementHeatmap: 'Movement Heatmap',
 };
 
 const Sidebar = ({ layers, onToggleLayer }) => (

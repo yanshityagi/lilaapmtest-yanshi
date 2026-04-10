@@ -37,7 +37,7 @@ export const generateInsights = (events, layers) => {
     return acc;
   }, {});
 
-  if (layers.heatmap && total > 0) {
+  if ((layers.killHeatmap || layers.deathHeatmap || layers.movementHeatmap) && total > 0) {
     const density = Math.max(...Object.values(byType));
     const hotType = Object.entries(byType).sort((a, b) => b[1] - a[1])[0]?.[0];
     insightCards.push({

@@ -15,7 +15,9 @@ const initialLayers = {
   deathEvents: true,
   lootEvents: true,
   stormDeaths: true,
-  heatmap: false,
+  killHeatmap: false,
+  deathHeatmap: false,
+  movementHeatmap: false,
 };
 
 const buildBounds = (events) => {

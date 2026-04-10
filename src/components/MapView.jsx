@@ -137,6 +137,23 @@ const MapView = ({
     [mappedVisibleEvents],
   );
 
+
+  const killHeatmapEvents = useMemo(
+    () => mappedVisibleEvents.filter((event) => event.event_type === 'kill'),
+    [mappedVisibleEvents],
+  );
+  const deathHeatmapEvents = useMemo(
+    () => mappedVisibleEvents.filter((event) => event.event_type === 'death'),
+    [mappedVisibleEvents],
+  );
+  const movementHeatmapEvents = mappedVisibleEvents;
+
+  const activeHeatmaps = [
+    layers.killHeatmap ? 'Kill' : null,
+    layers.deathHeatmap ? 'Death' : null,
+    layers.movementHeatmap ? 'Movement' : null,
+  ].filter(Boolean);
+
   const focusPixel = useMemo(() => {
     if (!focusRegion) {
       return null;
@@ -202,6 +219,13 @@ const MapView = ({
           </div>
         </div>
 
+
+        {activeHeatmaps.length > 0 && (
+          <div className="absolute right-3 top-24 z-20 rounded-md border border-orange-400/40 bg-slate-900/80 px-3 py-2 text-[11px] text-orange-200">
+            Heatmap: {activeHeatmaps.join(', ')}
+          </div>
+        )}
+
         {focusRegion && (
           <div className="absolute left-3 top-3 z-20 flex items-center gap-2">
             <span className="rounded bg-indigo-500/80 px-2 py-1 text-[11px] font-medium">Focus Mode</span>
@@ -216,10 +240,21 @@ const MapView = ({
         )}
 
         <svg viewBox={`0 0 ${stageSize.width || 1} ${stageSize.height || 1}`} className="pointer-events-none absolute inset-0 h-full w-full">
-          {layers.heatmap && (
+          {(layers.killHeatmap || layers.deathHeatmap || layers.movementHeatmap) && (
             <defs>
-              <radialGradient id="heat" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stopColor="rgba(255,70,0,0.45)" />
+              <radialGradient id="kill-heat" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stopColor="rgba(255,70,0,0.34)" />
+                <stop offset="55%" stopColor="rgba(255,120,0,0.18)" />
+                <stop offset="100%" stopColor="rgba(255,0,0,0)" />
+              </radialGradient>
+              <radialGradient id="death-heat" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stopColor="rgba(255,40,0,0.28)" />
+                <stop offset="55%" stopColor="rgba(255,140,0,0.16)" />
+                <stop offset="100%" stopColor="rgba(255,0,0,0)" />
+              </radialGradient>
+              <radialGradient id="movement-heat" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stopColor="rgba(255,90,0,0.2)" />
+                <stop offset="55%" stopColor="rgba(255,150,0,0.11)" />
                 <stop offset="100%" stopColor="rgba(255,0,0,0)" />
               </radialGradient>
             </defs>
@@ -262,9 +297,19 @@ const MapView = ({
             </g>
           )}
 
-          {layers.heatmap &&
-            mappedVisibleEvents.map((event, index) => (
-              <circle key={`heat-${index}`} cx={event.mapped.x} cy={event.mapped.y} r="22" fill="url(#heat)" />
+          {layers.movementHeatmap &&
+            movementHeatmapEvents.map((event, index) => (
+              <circle key={`movement-heat-${index}`} cx={event.mapped.x} cy={event.mapped.y} r="18" fill="url(#movement-heat)" />
+            ))}
+
+          {layers.killHeatmap &&
+            killHeatmapEvents.map((event, index) => (
+              <circle key={`kill-heat-${index}`} cx={event.mapped.x} cy={event.mapped.y} r="24" fill="url(#kill-heat)" />
+            ))}
+
+          {layers.deathHeatmap &&
+            deathHeatmapEvents.map((event, index) => (
+              <circle key={`death-heat-${index}`} cx={event.mapped.x} cy={event.mapped.y} r="24" fill="url(#death-heat)" />
             ))}
 
           {layers.playerPaths &&
