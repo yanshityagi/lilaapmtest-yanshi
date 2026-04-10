@@ -1,7 +1,12 @@
+// src/data/gameDataAdapter.js (top of file)
+import AmbroseImg from '../../player_data/minimaps/AmbroseValley_Minimap.png';
+import GrandRiftImg from '../../player_data/minimaps/GrandRift_Minimap.png';
+import LockdownImg from '../../player_data/minimaps/Lockdown_Minimap.jpg';
+
 const MAP_CONFIG = {
-  ambrose_valley: '/maps/ambrose_valley.png',
-  grand_rift: '/maps/grand_rift.png',
-  lockdown: '/maps/lockdown.jpg',
+  ambrose_valley: AmbroseImg,
+  grand_rift: GrandRiftImg,
+  lockdown: LockdownImg,
 };
 
 const EVENT_TYPES = ['kill', 'death', 'loot', 'storm_death'];

@@ -1,0 +1,46 @@
+/* Basic, minimal styling for the MapViewer */
+.map-viewer-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #f1f5f9; /* subtle neutral behind image while loading */
+    border-radius: 8px;
+  }
+  
+  /* Image scales responsively */
+  .map-image {
+    display: block;
+    width: 100%;
+    height: auto;
+    user-select: none;
+    -webkit-user-drag: none;
+  }
+  
+  /* overlay sits on top of the image, same size as image & positioned */
+  .map-overlay {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; /* allow clicks to pass through to image unless points themselves need clicks */
+  }
+  
+  /* point marker base class */
+  .map-point {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    pointer-events: auto; /* allow hover / tooltip */
+    display: inline-block;
+    box-sizing: border-box;
+    /* transition helps when resizing/repositioning */
+    transition: transform 120ms linear, top 120ms linear, left 120ms linear;
+  }
+  
+  /* Small responsive tweak: shrink points on small screens */
+  @media (max-width: 640px) {
+    .map-point {
+      transform: translate(-50%, -50%) scale(0.85);
+    }
+  }

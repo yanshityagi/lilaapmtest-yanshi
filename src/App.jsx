@@ -1,4 +1,3 @@
-// src/App.jsx
 import { useEffect, useMemo, useState } from 'react';
 import TopBar from './components/TopBar';
 import Sidebar from './components/Sidebar';
@@ -84,6 +83,16 @@ function App() {
     match: 'all',
     playerType: 'all',
   });
+
+  // 🔥 ADD THIS
+  const activeHeatmapLabel =
+    heatmapMode === 'kill'
+      ? 'Kill'
+      : heatmapMode === 'death'
+      ? 'Death'
+      : heatmapMode === 'movement'
+      ? 'Movement'
+      : null;
 
   useEffect(() => {
     getGameData().then(({ events: gameEvents, mapConfig: config }) => {
@@ -192,26 +201,34 @@ function App() {
       />
 
       <div className="flex min-h-0 flex-1 gap-3 p-3">
-      <Sidebar
+        <Sidebar
           layers={layers}
           onToggleLayer={(key) => setLayers((current) => ({ ...current, [key]: !current[key] }))}
           heatmapMode={heatmapMode}
           onSetHeatmapMode={(mode) => setHeatmapMode(mode)}
-      />
+        />
 
         <main className="min-h-0 flex-1 rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
           <SummaryBar stats={summaryStats} />
+
+          {/* 🔥 ADD THIS LABEL */}
+          {activeHeatmapLabel && (
+            <div className="mt-2 text-sm font-medium text-slate-600">
+              Active Heatmap: {activeHeatmapLabel}
+            </div>
+          )}
+
           <div className="mt-3 min-h-0 h-[calc(100%-76px)]">
-          <MapView
-            events={filteredEvents}
-            visibleEvents={visibleEvents}
-            layers={layers}
-            heatmapMode={heatmapMode}
-            mapImage={mapImage}
-            focusRegion={focusRegion}
-            onFocusSelect={(event) => setFocusRegion({ x: event.x, y: event.y, radius: DEFAULT_FOCUS_RADIUS })}
-            onFocusExit={() => setFocusRegion(null)}
-          />
+            <MapView
+              events={filteredEvents}
+              visibleEvents={visibleEvents}
+              layers={layers}
+              heatmapMode={heatmapMode}
+              mapImage={mapImage}
+              focusRegion={focusRegion}
+              onFocusSelect={(event) => setFocusRegion({ x: event.x, y: event.y, radius: DEFAULT_FOCUS_RADIUS })}
+              onFocusExit={() => setFocusRegion(null)}
+            />
           </div>
         </main>
 

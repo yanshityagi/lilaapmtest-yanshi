@@ -166,13 +166,6 @@ const MapView = ({
         />
 
 
-        {/* Optional hint */}
-        {heatmapMode === 'none' && (
-          <div className="absolute left-3 top-14 text-xs text-slate-500">
-            Select a heatmap
-          </div>
-        )}
-
         <svg className="absolute inset-0 w-full h-full">
 
           <defs>
