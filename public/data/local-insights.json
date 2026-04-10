@@ -1,0 +1,16 @@
+{
+  "meta": {
+    "generatedAt": "2026-04-10T00:00:00Z",
+    "region": "All"
+  },
+  "summary": {
+    "hotspots": 8,
+    "avgResponseMinutes": 3.2,
+    "coverageScore": 92
+  },
+  "timeline": [
+    { "time": "08:00", "activeUnits": 24 },
+    { "time": "12:00", "activeUnits": 31 },
+    { "time": "16:00", "activeUnits": 27 }
+  ]
+}

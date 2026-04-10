@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 const initialToggles = [
   { id: 'traffic', label: 'Traffic', enabled: true },
@@ -9,6 +9,40 @@ const initialToggles = [
 function App() {
   const [toggles, setToggles] = useState(initialToggles)
   const [timeline, setTimeline] = useState(50)
+  const [localData, setLocalData] = useState(null)
+  const [isLoadingData, setIsLoadingData] = useState(true)
+  const [loadError, setLoadError] = useState('')
+
+  useEffect(() => {
+    const loadLocalJson = async () => {
+      setIsLoadingData(true)
+      setLoadError('')
+
+      try {
+        const response = await fetch('/data/local-insights.json')
+
+        if (!response.ok) {
+          throw new Error(`Failed to load local JSON (status: ${response.status})`)
+        }
+
+        const data = await response.json()
+        setLocalData(data)
+
+        console.group('Local JSON structure')
+        console.log('Top-level keys:', Object.keys(data))
+        console.log('meta keys:', Object.keys(data.meta ?? {}))
+        console.log('summary keys:', Object.keys(data.summary ?? {}))
+        console.log('timeline length:', Array.isArray(data.timeline) ? data.timeline.length : 0)
+        console.groupEnd()
+      } catch (error) {
+        setLoadError(error instanceof Error ? error.message : 'Unknown loading error')
+      } finally {
+        setIsLoadingData(false)
+      }
+    }
+
+    loadLocalJson()
+  }, [])
 
   const toggleLayer = (id) => {
     setToggles((prev) =>
@@ -39,6 +73,9 @@ function App() {
             </select>
           </label>
           <button>Apply Filters</button>
+          <span className="data-status" role="status">
+            {isLoadingData ? 'Loading local JSON…' : loadError ? `Load error: ${loadError}` : 'Local JSON loaded'}
+          </span>
         </div>
       </header>
 
@@ -65,10 +102,15 @@ function App() {
         <aside className="right-panel card">
           <h2>Insights</h2>
           <ul>
-            <li>Hotspots detected: 8</li>
-            <li>Avg response time: 3.2m</li>
-            <li>Coverage score: 92%</li>
+            <li>Hotspots detected: {localData?.summary?.hotspots ?? '—'}</li>
+            <li>Avg response time: {localData?.summary?.avgResponseMinutes ?? '—'}m</li>
+            <li>Coverage score: {localData?.summary?.coverageScore ?? '—'}%</li>
           </ul>
+          {isLoadingData && <p className="helper-text">Loading local JSON file...</p>}
+          {!isLoadingData && !loadError && (
+            <p className="helper-text">Loaded timeline entries: {localData?.timeline?.length ?? 0}</p>
+          )}
+          {!!loadError && <p className="helper-text error-text">{loadError}</p>}
         </aside>
       </div>
 

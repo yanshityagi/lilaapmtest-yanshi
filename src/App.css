@@ -45,6 +45,12 @@ body {
   font-size: 0.9rem;
 }
 
+.data-status {
+  margin-left: auto;
+  font-size: 0.85rem;
+  color: #334155;
+}
+
 select,
 button,
 input[type='range'] {
@@ -90,6 +96,16 @@ button {
   background: #eff6ff;
 }
 
+.helper-text {
+  margin: 10px 0 0;
+  font-size: 0.85rem;
+  color: #475569;
+}
+
+.error-text {
+  color: #b91c1c;
+}
+
 .bottom-timeline {
   padding: 12px;
   display: grid;
@@ -108,5 +124,10 @@ button {
 
   .map-area {
     order: -1;
+  }
+
+  .data-status {
+    width: 100%;
+    margin-left: 0;
   }
 }
