@@ -7,6 +7,9 @@ import Timeline from './components/Timeline';
 import { getGameData } from './data/gameDataAdapter';
 import { generateInsights } from './utils/analytics';
 
+
+const DEBUG_MODE = new URLSearchParams(window.location.search).get('debug') === '1';
+
 const initialLayers = {
   playerPaths: true,
   killEvents: true,
@@ -78,7 +81,7 @@ function App() {
         <Sidebar layers={layers} onToggleLayer={(key) => setLayers((current) => ({ ...current, [key]: !current[key] }))} />
 
         <main className="min-h-0 flex-1 p-4">
-          <MapView events={filteredEvents} layers={layers} mapImage={mapImage} />
+          <MapView events={filteredEvents} layers={layers} mapImage={mapImage} debug={DEBUG_MODE} />
         </main>
 
         <InsightsPanel insights={insights} />
