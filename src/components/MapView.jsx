@@ -123,6 +123,20 @@ const MapView = ({
     [visibleEvents, bounds, stageSize, invertY],
   );
 
+
+  const debugSamplePoints = useMemo(
+    () =>
+      mappedVisibleEvents.slice(0, 6).map((event, index) => ({
+        id: `S${index + 1}`,
+        playerId: event.player_id,
+        rawX: event.x,
+        rawY: event.y,
+        x: event.mapped.x,
+        y: event.mapped.y,
+      })),
+    [mappedVisibleEvents],
+  );
+
   const focusPixel = useMemo(() => {
     if (!focusRegion) {
       return null;
@@ -140,15 +154,11 @@ const MapView = ({
       return;
     }
 
-    const sample = mappedVisibleEvents.slice(0, 5).map((event) => ({
-      player_id: event.player_id,
-      actor_type: event.actor_type,
-      event_type: event.event_type,
-      raw: { x: event.x, y: event.y },
-      mapped: {
-        x: Number(event.mapped.x.toFixed(2)),
-        y: Number(event.mapped.y.toFixed(2)),
-      },
+    const sample = debugSamplePoints.map((point) => ({
+      sample_id: point.id,
+      player_id: point.playerId,
+      raw: { x: Number(point.rawX.toFixed(4)), y: Number(point.rawY.toFixed(4)) },
+      mapped: { x: Number(point.x.toFixed(2)), y: Number(point.y.toFixed(2)) },
     }));
 
     console.log('[MapView debug] mapped sample points', {
@@ -158,7 +168,7 @@ const MapView = ({
       focusMode: Boolean(focusRegion),
       sample,
     });
-  }, [debug, mappedVisibleEvents, bounds, stageSize, invertY, focusRegion]);
+  }, [debug, debugSamplePoints, bounds, stageSize, invertY, focusRegion]);
 
   return (
     <div ref={containerRef} className="relative flex h-full w-full items-center justify-center overflow-hidden rounded-lg border border-slate-700 bg-slate-950">
@@ -227,6 +237,21 @@ const MapView = ({
                   </g>
                 );
               })}
+            </g>
+          )}
+
+          {debug && (
+            <g>
+              <circle cx="14" cy="14" r="4" fill="#34d399" />
+              <text x="24" y="18" fill="#a7f3d0" fontSize="11">Origin (0,0) top-left</text>
+              {debugSamplePoints.map((point) => (
+                <g key={point.id}>
+                  <rect x={point.x - 4.5} y={point.y - 4.5} width="9" height="9" fill="#38bdf8" stroke="#f8fafc" strokeWidth="1.5" />
+                  <text x={point.x + 7} y={point.y - 6} fill="#e2e8f0" fontSize="11" fontWeight="700">
+                    {point.id}
+                  </text>
+                </g>
+              ))}
             </g>
           )}
 

@@ -7,7 +7,6 @@ import Timeline from './components/Timeline';
 import { getGameData } from './data/gameDataAdapter';
 import { generateInsights } from './utils/analytics';
 
-const DEBUG_MODE = new URLSearchParams(window.location.search).get('debug') === '1';
 const DEFAULT_FOCUS_RADIUS = 0.14;
 
 const initialLayers = {
@@ -62,6 +61,7 @@ function App() {
   const [mapConfig, setMapConfig] = useState({});
   const [layers, setLayers] = useState(initialLayers);
   const [timelinePercent, setTimelinePercent] = useState(100);
+  const [debugMode, setDebugMode] = useState(false);
   const [focusRegion, setFocusRegion] = useState(null);
   const [filters, setFilters] = useState({
     map: 'all',
@@ -117,6 +117,8 @@ function App() {
         maps={maps}
         matches={matches}
         filters={filters}
+        debugMode={debugMode}
+        onToggleDebug={() => setDebugMode((current) => !current)}
         onFilterChange={(key, value) => {
           setFilters((current) => ({ ...current, [key]: value }));
           setFocusRegion(null);
@@ -132,7 +134,7 @@ function App() {
             visibleEvents={visibleEvents}
             layers={layers}
             mapImage={mapImage}
-            debug={DEBUG_MODE}
+            debug={debugMode}
             focusRegion={focusRegion}
             onFocusSelect={(event) => setFocusRegion({ x: event.x, y: event.y, radius: DEFAULT_FOCUS_RADIUS })}
             onFocusExit={() => setFocusRegion(null)}

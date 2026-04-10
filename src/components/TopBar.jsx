@@ -1,4 +1,4 @@
-const TopBar = ({ maps, matches, filters, onFilterChange }) => {
+const TopBar = ({ maps, matches, filters, onFilterChange, debugMode, onToggleDebug }) => {
   return (
     <header className="flex items-center gap-4 border-b border-slate-700 bg-slate-900/90 px-4 py-3">
       <h1 className="mr-4 text-sm font-semibold uppercase tracking-wide text-slate-300">Player Journey Tool</h1>
@@ -43,6 +43,18 @@ const TopBar = ({ maps, matches, filters, onFilterChange }) => {
           </button>
         ))}
       </div>
+
+      <button
+        type="button"
+        onClick={onToggleDebug}
+        className={`rounded-md border px-3 py-2 text-xs font-medium transition ${
+          debugMode
+            ? 'border-emerald-400 bg-emerald-500/20 text-emerald-200'
+            : 'border-slate-600 bg-slate-800 text-slate-300 hover:bg-slate-700'
+        }`}
+      >
+        Debug {debugMode ? 'On' : 'Off'}
+      </button>
     </header>
   );
 };
