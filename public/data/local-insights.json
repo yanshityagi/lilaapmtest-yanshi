@@ -1,0 +1,57 @@
+{
+  "meta": {
+    "generatedAt": "2026-04-10T00:00:00Z",
+    "mapDimensions": {
+      "width": 2048,
+      "height": 2048
+    },
+    "maps": ["GrandRift", "Lockdown"],
+    "matches": ["match-01", "match-02"]
+  },
+  "summary": {
+    "hotspots": 8,
+    "avgResponseMinutes": 3.2,
+    "coverageScore": 92
+  },
+  "timeline": [
+    { "time": "08:00", "activeUnits": 24 },
+    { "time": "12:00", "activeUnits": 31 },
+    { "time": "16:00", "activeUnits": 27 }
+  ],
+  "entities": [
+    { "id": "u-101", "map": "GrandRift", "match": "match-01", "type": "Human", "timestamp": "2026-04-10T08:04:00Z", "x": 742, "y": 1210 },
+    { "id": "u-102", "map": "GrandRift", "match": "match-02", "type": "Human", "timestamp": "2026-04-10T08:07:00Z", "x": 1094, "y": 520 },
+    { "id": "u-201", "map": "GrandRift", "match": "match-01", "type": "Bot", "timestamp": "2026-04-10T08:04:00Z", "x": 1530, "y": 962 },
+    { "id": "u-202", "map": "Lockdown", "match": "match-02", "type": "Bot", "timestamp": "2026-04-10T08:06:00Z", "x": 420, "y": 680 }
+  ],
+  "playerPaths": [
+    {
+      "playerId": "u-101",
+      "map": "GrandRift",
+      "match": "match-01",
+      "type": "Human",
+      "positions": [
+        { "timestamp": "2026-04-10T08:00:00Z", "x": 520, "y": 1390 },
+        { "timestamp": "2026-04-10T08:02:00Z", "x": 640, "y": 1280 },
+        { "timestamp": "2026-04-10T08:04:00Z", "x": 742, "y": 1210 }
+      ]
+    },
+    {
+      "playerId": "u-201",
+      "map": "GrandRift",
+      "match": "match-01",
+      "type": "Bot",
+      "positions": [
+        { "timestamp": "2026-04-10T08:00:00Z", "x": 1710, "y": 880 },
+        { "timestamp": "2026-04-10T08:02:00Z", "x": 1624, "y": 910 },
+        { "timestamp": "2026-04-10T08:04:00Z", "x": 1530, "y": 962 }
+      ]
+    }
+  ],
+  "markers": [
+    { "id": "m-kill-1", "map": "GrandRift", "match": "match-01", "actorType": "Human", "type": "kill", "timestamp": "2026-04-10T08:03:00Z", "x": 1340, "y": 760 },
+    { "id": "m-death-1", "map": "GrandRift", "match": "match-01", "actorType": "Bot", "type": "death", "timestamp": "2026-04-10T08:05:00Z", "x": 920, "y": 1180 },
+    { "id": "m-loot-1", "map": "GrandRift", "match": "match-02", "actorType": "Human", "type": "loot", "timestamp": "2026-04-10T08:01:00Z", "x": 600, "y": 860 },
+    { "id": "m-storm-1", "map": "Lockdown", "match": "match-02", "actorType": "Bot", "type": "storm", "timestamp": "2026-04-10T08:06:00Z", "x": 1650, "y": 1300 }
+  ]
+}
